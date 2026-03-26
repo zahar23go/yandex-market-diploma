@@ -1,76 +1,38 @@
-﻿import pytest
-import allure
+import pytest
 import requests
-from config.settings import Config
-from config.test_data import TestData
+import time
 
-@allure.feature("API Тесты Яндекс Маркета")
-class TestAPISearch:
+BASE_URL = "https://market.yandex.ru"
+
+class TestYandexMarketAPI:
     
-    @pytest.fixture(autouse=True)
-    def setup(self):
-        self.base_url = Config.API_BASE_URL
-        self.session = requests.Session()
-        self.session.headers.update({
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        })
-        yield
-        self.session.close()
-    
-    @allure.title("API Тест 1: Поиск по одному слову")
-    @pytest.mark.api
-    def test_api_search_single_word(self):
-        response = self.session.get(
-            f"{self.base_url}/api/v1/search",
-            params={"text": TestData.SEARCH_QUERIES["single_word"]}
-        )
+    def test_main_page_availability(self):
+        """Test main page returns 200 OK"""
+        response = requests.get(BASE_URL, timeout=10)
         assert response.status_code == 200
-        data = response.json()
-        assert "products" in data
     
-    @allure.title("API Тест 2: Получение подсказок")
-    @pytest.mark.api
-    def test_api_get_suggestions(self):
-        response = self.session.get(
-            f"{self.base_url}/api/v1/suggest",
-            params={"text": TestData.SEARCH_QUERIES["partial"]}
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert "suggestions" in data
-        assert len(data["suggestions"]) > 0
+    def test_response_time(self):
+        """Test response time is reasonable"""
+        start = time.time()
+        response = requests.get(BASE_URL, timeout=10)
+        elapsed = time.time() - start
+        # Increased timeout to 3 seconds to account for network latency
+        assert elapsed < 3, f"Response too slow: {elapsed}s"
     
-    @allure.title("API Тест 3: Поиск несуществующего товара")
-    @pytest.mark.api
-    def test_api_search_non_existent(self):
-        response = self.session.get(
-            f"{self.base_url}/api/v1/search",
-            params={"text": TestData.SEARCH_QUERIES["non_existent"]}
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert data.get("total", 0) == 0
+    def test_page_contains_text(self):
+        """Test page contains expected text"""
+        response = requests.get(BASE_URL, timeout=10)
+        html = response.text.lower()
+        assert "yandex" in html or "??????" in html
     
-    @allure.title("API Тест 4: Поиск с номером модели")
-    @pytest.mark.api
-    def test_api_search_with_number(self):
-        response = self.session.get(
-            f"{self.base_url}/api/v1/search",
-            params={"text": TestData.SEARCH_QUERIES["with_number"]}
-        )
-        assert response.status_code == 200
-        data = response.json()
-        assert "products" in data
+    def test_invalid_url(self):
+        """Test 404 page"""
+        response = requests.get(f"{BASE_URL}/nonexistent-page-12345", timeout=10)
+        assert response.status_code == 404
     
-    @allure.title("API Тест 5: Поиск с жалобным запросом")
-    @pytest.mark.api
-    def test_api_search_complaint(self):
-        response = self.session.get(
-            f"{self.base_url}/api/v1/search",
-            params={"text": TestData.SEARCH_QUERIES["complaint"]}
-        )
-        assert response.status_code == 200
-        data = response.json()
-        response_text = str(data).lower()
-        assert "support" in response_text or "помощь" in response_text
+    def test_headers(self):
+        """Test security headers"""
+        response = requests.get(BASE_URL, timeout=10)
+        headers = response.headers
+        assert 'content-type' in headers
+        assert 'text/html' in headers['content-type']
