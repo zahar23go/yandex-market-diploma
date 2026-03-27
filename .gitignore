@@ -1,17 +1,49 @@
-﻿__pycache__/
-*.pyc
-*.pyo
-*.pyd
-venv/
+﻿# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 env/
-.vscode/
-.idea/
+venv/
+ENV/
+.venv
+
+# Pytest
 .pytest_cache/
-.allure/
+.coverage
+htmlcov/
+
+# Allure
 allure-results/
 allure-report/
-.env
-*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Binary files
+*.exe
+*.dll
+*.so
+*.dylib
 chromedriver.exe
 geckodriver.exe
-.DS_Store
+
+# Environment
+.env
+*.log
+
+# Test outputs
+test-reports/
+logs/
+screenshots/
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
