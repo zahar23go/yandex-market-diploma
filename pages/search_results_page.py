@@ -1,23 +1,19 @@
-﻿from selenium.webdriver.common.by import By
+"""Page Object для страницы результатов поиска"""
+
+from selenium.webdriver.common.by import By
 from pages.base_page import BasePage
 import allure
 
+
 class SearchResultsPage(BasePage):
-    PRODUCT_CARD = (By.CSS_SELECTOR, ".product-card")
-    NO_RESULTS_MESSAGE = (By.CSS_SELECTOR, ".no-results")
-    
-    @allure.step("Get results count")
-    def get_results_count(self):
-        products = self.driver.find_elements(*self.PRODUCT_CARD)
-        return len(products)
-    
-    @allure.step("Check if results are displayed")
-    def are_results_displayed(self):
-        return self.get_results_count() > 0
-    
-    @allure.step("Check if no results message is displayed")
-    def is_no_results_message_displayed(self):
-        try:
-            return self.driver.find_element(*self.NO_RESULTS_MESSAGE).is_displayed()
-        except:
-            return False
+    """Страница результатов поиска"""
+
+    PRODUCTS = (By.CSS_SELECTOR, "[data-autotest-id='product-snippet']")
+
+    def is_results_displayed(self) -> bool:
+        with allure.step("Проверить отображение результатов"):
+            return len(self.driver.find_elements(*self.PRODUCTS)) > 0
+
+    def get_products_count(self) -> int:
+        with allure.step("Получить количество товаров"):
+            return len(self.driver.find_elements(*self.PRODUCTS))
